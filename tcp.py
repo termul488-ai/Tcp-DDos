@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- encoding: UTF-8 -*-
+import os
 import requests
 import sys
+import time
 import threading
 import random
 import re
 import argparse
+import fade
 
 host=''
 headers_useragents=[]
@@ -61,7 +64,7 @@ def handleStatusCodes(status_code):
 	global request_counter
 	sys.stdout.write("\033[100m \033[40m\r%i Target\033[0m" % request_counter) 
 	sys.stdout.flush()
-	print(f"\033[33m  "+str(url)+"\033[38;5;1m runing\033[0m")
+	print(f"\033[33m "+str(url)+"\033[38;5;1m runing\033[0m")
 	if status_code == 429:
 			printMsg("You have been throttled")
 	if status_code == 500:
