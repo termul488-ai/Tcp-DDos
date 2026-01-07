@@ -59,7 +59,7 @@ def initHeaders():
 
 def handleStatusCodes(status_code):
 	global request_counter
-	sys.stdout.write("\r%i requests has been sent" +str(url)+ " % request_counter")
+	sys.stdout.write("\r%i requests has been sent % request_counter" +str(url)+ ")")
 	sys.stdout.flush()
 	
 	if status_code == 429:
