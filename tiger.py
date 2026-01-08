@@ -28,6 +28,17 @@ BrightCyan = "\033[48;5;6m  \033[0m"
 BrightWhite = "\033[48;5;7m  \033[0m"
 
 
+attemps = 0
+os.system("clear")
+logo = """
+
+		╔════════╗
+		║
+		╚════════╝
+"""
+faded_text = fade.fire(logo)
+print(faded_text)
+
 host=''
 headers_useragents=[]
 request_counter=0
