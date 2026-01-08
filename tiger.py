@@ -39,13 +39,11 @@ logo = """
 faded_text = fade.fire(logo)
 print(faded_text)
 while attemps < 100:
-	os.system('clear')
-	print("""
-    print(f"\r\033[97m╔{'═' * 71}╗")
-    print(f"\r\033[97m║\033[32m   v.1.0{' ' * 63}\033[97m║")
-    print(f"\r\033[97m║\033[32m   https://kunkaffa@gmail.com{' ' * 42}\033[97m║")
-    print(f"\r\033[97m╚{'═' * 71}╝")
-	""")
+	print(f"\r\033[97m╔{'═' * 55}╗\033[0m")
+    print(f"\r\033[100m\033[97m║\033[32m   v.1.0{' ' * 41}\033[97m║\033[0m")
+    print(f"\r\033[100m\033[97m║\033[32m   https://kunkaffa@gmail.com{' ' * 21}\033[97m║\033[0m")
+    print(f"\r\033[97m╚{'═' * 55}╝\033[0m")
+
     
     print("\033[32m┏━━KunFayz━━⬣")
     username = input("\033[32m┗> Enter your username: \033[0m")
